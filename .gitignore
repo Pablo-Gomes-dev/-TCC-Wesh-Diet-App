@@ -26,9 +26,10 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
+# Arquivos do sistema operacional
 .DS_Store
 *.pem
+Thumbs.db
 
 # local env files
 .env*.local
@@ -41,3 +42,14 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Variáveis de ambiente e credenciais
+.env
+.env.*
+!.env.example
