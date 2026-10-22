@@ -1,8 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as documentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import * as IntentLauncher from "expo-intent-launcher";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     Alert,
     ScrollView,
@@ -12,6 +13,10 @@ import {
     View,
 } from "react-native";
 
+// CONFIGURAÇÃO DA URL BASE DA API DO BACKEND
+// Permite configurar via variável de ambiente EXPO_PUBLIC_API_URL ou utilizar o IP padrão como fallback.
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://10.0.0.23:8000";
+
 export default function Exames() {
   const [exameSelecionado, setExameSelecionado] = useState<{
     nome: string;
@@ -19,26 +24,69 @@ export default function Exames() {
     tipo: string;
   } | null>(null);
 
-  //Exames fictícios apenas para testar a interface.
-  // Posteriomente esses dados virão do armazenamento/banco de dados.
-  const exames = [
-    {
-      id: "1",
-      nome: "Hemograma.pdf",
-      origem: "Enviado pelo paciente",
-      data: "15/09/2026",
-    },
-    {
-      id: "2",
-      nome: "Exame_sangue.pdf",
-      origem: "Enviado pelo paciente",
-      data: "18/09/2026",
-    },
-  ];
+  type Exame = {
+    id: number;
+    nome_arquivo: string;
+    data_envio: string | null;
+    status_processamento: string;
+    paciente_id: number;
+    nome_paciente: string | null;
+  };
+
+  const [exames, setExames] = useState<Exame[]>([]);
+  const [carregandoExames, setCarregandoExames] = useState(true);
+  const [erroExames, setErroExames] = useState("");
 
   function visualizarExame(nome: string) {
-    Alert.alert("Visualizar exame", `exame selecionado:\n${nome}`);
+    Alert.alert("Visualizar exame", `Exame selecionado:\n${nome}`);
   }
+
+  async function carregarExames() {
+    setCarregandoExames(true);
+    setErroExames("");
+
+    try {
+      const token = await AsyncStorage.getItem("@weshdiet:token");
+
+      if (!token) {
+        throw new Error("Sessão não encontrada. Faça login novamente.");
+      }
+
+      const resposta = await fetch(`${API_BASE_URL}/exames/meus`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(dados.detail || "Não foi possível carregar os exames.");
+      }
+
+      if (!Array.isArray(dados.exames)) {
+        throw new Error("O backend retornou uma resposta inesperada.");
+      }
+
+      setExames(dados.exames);
+    } catch (error) {
+      console.error("Erro ao carregar exames:", error);
+
+      setErroExames(
+        error instanceof Error
+          ? error.message
+          : "Ocorreu um erro ao carregar os exames.",
+      );
+    } finally {
+      setCarregandoExames(false);
+    }
+  }
+
+  useEffect(() => {
+    carregarExames();
+  }, []);
 
   async function analisarExame() {
     if (!exameSelecionado) {
@@ -55,7 +103,7 @@ export default function Exames() {
       console.log("URI:", exameSelecionado.uri);
 
       const resposta = await FileSystem.uploadAsync(
-        "http://10.0.0.23:8000/analisar-exame",
+        `${API_BASE_URL}/analisar-exame`,
         exameSelecionado.uri,
         {
           fieldName: "arquivo",
@@ -159,25 +207,49 @@ export default function Exames() {
 
       <Text style={styles.subtitulo}>Exames disponiveis para o paciente</Text>
 
-      {/* EXAMES DO PACIENTE */}
-      {exames.map((exame) => (
-        <View key={exame.id} style={styles.card}>
-          <Text style={styles.nomeExame}>📄{exame.nome}</Text>
+      {carregandoExames ? (
+        <Text style={styles.info}>Carregando exames...</Text>
+      ) : erroExames ? (
+        <View style={styles.card}>
+          <Text style={styles.info}>{erroExames}</Text>
 
-          <Text style={styles.info}>{exame.origem}</Text>
-
-          <Text style={styles.data}>{exame.data}</Text>
-
-          <View style={styles.botoes}>
-            <TouchableOpacity
-              style={styles.botaoAnalise}
-              onPress={() => visualizarExame(exame.nome)}
-            >
-              <Text style={styles.textoBotao}>Enviar para análise</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.botaoAnalise}
+            onPress={carregarExames}
+          >
+            <Text style={styles.textoBotao}>Tentar novamente</Text>
+          </TouchableOpacity>
         </View>
-      ))}
+      ) : exames.length === 0 ? (
+        <View style={styles.card}>
+          <Text style={styles.info}>
+            Nenhum exame disponível para exibição.
+          </Text>
+        </View>
+      ) : (
+        exames.map((exame) => (
+          <View key={exame.id} style={styles.card}>
+            <Text style={styles.nomeExame}>📄 {exame.nome_arquivo}</Text>
+
+            <Text style={styles.info}>
+              Status: {exame.status_processamento}
+            </Text>
+
+            <Text style={styles.data}>
+              Data de envio: {exame.data_envio || "Não informada"}
+            </Text>
+
+            <View style={styles.botoes}>
+              <TouchableOpacity
+                style={styles.botaoAnalise}
+                onPress={() => visualizarExame(exame.nome_arquivo)}
+              >
+                <Text style={styles.textoBotao}>Enviar para análise</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))
+      )}
 
       {/* ADICIONAR EXAME*/}
       <Text style={styles.subtitulo}>Adicionar novo exame</Text>

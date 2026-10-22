@@ -1,3 +1,19 @@
+# ==============================================================================
+# ARQUIVOS E PASTAS IGNORADOS PELO GIT NO BACKEND
+# ==============================================================================
+
+# ARQUIVO DE VARIÁVEIS DE AMBIENTE SENSÍVEIS (CONTÉM CHAVES DE API COMO OPENAI_API_KEY)
 .env
+
+# AMBIENTE VIRTUAL DO PYTHON
 venv/
-_pycache_/
+
+# PASTAS DE BYTECODE/CACHE DO PYTHON (CORRIGIDO: '__pycache__/' COM DOIS SUBLINHADOS)
+__pycache__/
+*.pyc
+
+# DIRETÓRIO DE CACHE DO EXECUTOR DE TESTES PYTEST
+.pytest_cache/
+
+# ARMAZENAMENTO PRIVADO DE ARQUIVOS PDF DE EXAMES (DADOS SENSÍVEIS DE SAÚDE - LGPD)
+storage_privado/

@@ -1,0 +1,35 @@
+# ==============================================================================
+# DEPENDÊNCIAS DO BACKEND WESHDIET (PYTHON)
+# ==============================================================================
+# Para instalar todas as dependências no ambiente virtual, execute:
+# pip install -r requirements.txt
+# ==============================================================================
+
+# FRAMEWORK WEB ASSÍNCRONO PARA A CONSTRUÇÃO DOS ENDPOINTS DA API
+fastapi>=0.115.0
+
+# SERVIDOR ASGI DE ALTA PERFORMANCE PARA EXECUTAR O FASTAPI
+uvicorn>=0.30.0
+
+# SUPORTE AO PROCESSAMENTO DE FORM-DATA E UPLOAD DE ARQUIVOS MULTIPART (EXAMES EM PDF)
+python-multipart>=0.0.9
+
+# GERENCIAMENTO E CARREGAMENTO DE VARIÁVEIS DE AMBIENTE DO ARQUIVO .env
+python-dotenv>=1.0.0
+
+# SDK OFICIAL DA OPENAI PARA GERAÇÃO DE ANÁLISES NUTRICIONAIS COM IA (GPT)
+openai>=1.50.0
+
+# FRAMEWORK PARA EXECUÇÃO DOS TESTES UNITÁRIOS AUTOMATIZADOS
+pytest>=8.0.0
+
+# BIBLIOTECA PARA EXTRAÇÃO DE TEXTO E LEITURA DE PDFS EM MEMÓRIA (100% NATIVA PYTHON)
+pypdf>=5.0.0
+# DRIVER RESPONSAVEL PELA CONEXAO DO BANCO DE DADOS(POSTGRESQL) COM O BACKEND.
+psycopg[binary]>=3.3.6
+
+# HASH SEGURO DE SENHAS (CRIPTOGRAFIA FORTE COM SALT AUTOMÁTICO)
+bcrypt>=4.2.0
+
+# EMISSÃO E VALIDAÇÃO DE TOKENS JWT PARA SESSÕES E AUTORIZAÇÃO DE PAPÉIS
+pyjwt>=2.9.0
